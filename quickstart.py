@@ -53,10 +53,12 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
-def fileNametoID(fileList, fileName):
-    for item in fileList:
-        if(item['name'] == fileName and item['trashed'] == False):
-            return item['id']
+def fileNametoID(BigfileList, fileName):
+
+    for fileList in BigfileList:
+        for item in fileList:
+            if(item['name'] == fileName and item['trashed'] == False):
+                return item['id']
     return "nofile"
 
 def update_file(service,file_path, fileId):
@@ -74,18 +76,26 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
-
     results = service.files().list(
-        pageSize=10,fields="nextPageToken, files(id, name, trashed)").execute()
-    items = results.get('files', [])
-    if not items:
+        pageSize=1000,fields="nextPageToken, files(id, name, trashed)").execute()
+    itemlist = []    
+    items= results.get('files', [])
+    itemlist.append(items)
+    token = results.get('nextPageToken', None)
+    while(token != None) :
+        results = service.files().list(
+            pageSize=1000,pageToken = token,fields="nextPageToken, files(id, name, trashed)").execute()
+        itemlist.append(results.get('files', []))
+        token = results.get('nextPageToken', None)
+    if itemlist.count == 0:
         print('No files found.')
     else:
         print('Files:')
-        for item in items:
-            print('name:{0}, id: {1}, trashed: {2} '.format(item['name'], item['id'], item['trashed']))
+        for iteml in itemlist:
+            for item in iteml:
+                 print('name:{0}, id: {1}, trashed: {2} '.format(item['name'], item['id'], item['trashed']))
     # assuming unique file names, updating the checker file that was created by the android app
-    myID =fileNametoID(items, "checker")
+    myID =fileNametoID(itemlist, "123test")
     #update the file on Drive with contents of a local file
     if(myID != "nofile"):         
         update_file(service,"Deauth.txt",myID)
