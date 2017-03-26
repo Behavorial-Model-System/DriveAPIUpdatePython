@@ -95,7 +95,7 @@ def main():
             for item in iteml:
                  print('name:{0}, id: {1}, trashed: {2} '.format(item['name'], item['id'], item['trashed']))
     # assuming unique file names, updating the checker file that was created by the android app
-    myID =fileNametoID(itemlist, "123test")
+    myID =fileNametoID(itemlist, "BMS")
     #update the file on Drive with contents of a local file
     if(myID != "nofile"):         
         update_file(service,"Deauth.txt",myID)
